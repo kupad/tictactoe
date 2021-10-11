@@ -9,9 +9,12 @@ O = 2
 class Board:
     def __init__(self):
         self.b = [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]]
-
+    
     @staticmethod
     def val_to_str(val):
+        """
+        str representation of a cell's value
+        """
         if val == X:
             return "X"
         elif val == O:
@@ -19,40 +22,41 @@ class Board:
         else:
             return " "
 
+    def __getitem__(self, key):
+        """
+        return value of a cell via a tuple (row, col)
+        """
+        return self.b[key[0]][key[1]]
+
+    def __setitem__(self, key, val):
+        """
+        set value of a cell via a tuple (row, col)
+        """
+        self.b[key[0]][key[1]] = val
+
+    def is_empty(self, key):
+        """
+        is the cell at (row, col) empty?
+        """
+        return self[key] == EMPTY
+
     def is_valid(self, move):
+        """
+        is the move valid, given the current state of the board?
+        """
+        if move is None:
+            return False
         r, c = move
-        return 0 <= r <= 2 and 0 <= c <= 2 and not self.b[r][c]
+        return 0 <= r <= 2 and 0 <= c <= 2 and self.is_empty(move)
 
     def is_full(self):
         return all([all(row) for row in self.b])
-
-    def __repr__(self):
-        s = ''
-        for r in range(3):
-            for c in range(3):
-                s += f'{self.val_to_str(self.b[r][c])}'
-                s += '|' if c < 2 else '\n'
-        return s
-
-
-class Player:
-    def __init__(self, val):
-        self.val = val
-
-    def make_move(self):
-        rc = input(f'Player {Board.val_to_str(self.val)} Select Move: ')
-        return int(rc[0]), int(rc[1])
-
-
-class Game:
-    def __init__(self):
-        self.board = Board()
-        self.playerX = Player(X)
-        self.playerO = Player(O)
-        self.current_player = self.playerO  # To be immediately swapped
-
-    def is_win(self):
-        b = self.board.b
+    
+    def check_win(self):
+        """
+        Are we in a win state?
+        """
+        b = self.b
 
         def is_row_win():
             for row in b:
@@ -74,19 +78,61 @@ class Game:
 
         return is_row_win() or is_col_win() or is_diag1_win() or is_diag2_win()
 
+    def __repr__(self):
+        s = ''
+        for r in range(3):
+            for c in range(3):
+                s += f'{self.val_to_str(self.b[r][c])}'
+                s += '|' if c < 2 else '\n'
+        return s
+
+
+class Player:
+    def __init__(self, val):
+        self.val = val  # X or O
+
+    def _from_console(self, board):
+        """
+        Ask player to choose move.
+        Reads in cell as row and column like: 01, 22
+        TODO: maybe make each cell a single number: 1,2,3,...9
+        """
+        prompt = f'Player {board.val_to_str(self.val)} Select Move: '
+        rc = input(prompt)
+        try:
+            return int(rc[0]), int(rc[1])
+        except ValueError:
+            return None
+
+    def choose_move(self, board):
+        move = self._from_console(board)
+        while not board.is_valid(move):
+            print("Invalid move.")
+            move = self._from_console(board)
+
+        return move
+
+
+class Game:
+    def __init__(self):
+        self.board = Board()
+        self.playerX = Player(X)
+        self.playerO = Player(O)
+        self.current_player = self.playerX
+
     def start(self):
         winner = None
         while not winner and not self.board.is_full():
-            self.current_player = self.playerX if self.current_player == self.playerO else self.playerO
             print(self.board)
-            move = self.current_player.make_move()
-            while not self.board.is_valid(move):
-                print("Invalid move.")
-                move = self.current_player.make_move()
+            
+            move = self.current_player.choose_move(self.board)
+            self.board[move] = self.current_player.val
 
-            self.board.b[move[0]][move[1]] = self.current_player.val
-            if self.is_win():
+            if self.board.check_win():
                 winner = self.current_player
+            else:
+                # swap current_player
+                self.current_player = self.playerX if self.current_player == self.playerO else self.playerO
 
         print(self.board)
         if winner:
@@ -95,7 +141,7 @@ class Game:
             print("The game is a draw")
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     game = Game()
     game.start()
+
