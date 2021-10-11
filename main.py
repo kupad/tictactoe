@@ -97,8 +97,7 @@ class Player:
         Reads in cell as row and column like: 01, 22
         TODO: maybe make each cell a single number: 1,2,3,...9
         """
-        prompt = f'Player {board.val_to_str(self.val)} Select Move: '
-        rc = input(prompt)
+        rc = input(f'Player {board.val_to_str(self.val)} Select Move: ')
         try:
             return int(rc[0]), int(rc[1])
         except ValueError:
