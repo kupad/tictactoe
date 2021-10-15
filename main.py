@@ -22,7 +22,7 @@ MAX_COL_POS = NCOLS - 1
 class Board:
     def __init__(self):
         self.b = [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]]
-    
+
     @staticmethod
     def val_to_str(val):
         """
@@ -74,7 +74,7 @@ class Board:
 
     def is_full(self):
         return all([all(row) for row in self.b])
-    
+
     def check_win(self):
         """
         Are we in a win state?
@@ -165,36 +165,24 @@ class MiniMaxBot(CPUPlayer):
 
         if is_maximizing:
             best_score = -2
-            best_move = None
-            for row_pos in range(NROWS):
-                for col_pos in range(NCOLS):
-                    cell = (row_pos, col_pos)
-                    if not board.is_empty(cell):
-                        continue
-                    move = cell
-                    board[cell] = val
-                    score, _ = self._minimax(board, False, X if val == O else O)
-                    board[move] = EMPTY
-                    if score > best_score:
-                        best_score = score
-                        best_move = move
-            return best_score, best_move
+            cmp = lambda a, b: a > b
         else:
             best_score = +2
-            best_move = None
-            for row_pos in range(NROWS):
-                for col_pos in range(NCOLS):
-                    cell = (row_pos, col_pos)
-                    if not board.is_empty(cell):
-                        continue
-                    move = cell
-                    board[move] = val
-                    score, _ = self._minimax(board, True, X if val == O else O)
-                    board[move] = EMPTY
-                    if score < best_score:
-                        best_score = score
-                        best_move = move
-            return best_score, best_move
+            cmp = lambda a, b: a < b
+
+        for row_pos in range(NROWS):
+            for col_pos in range(NCOLS):
+                cell = (row_pos, col_pos)
+                if not board.is_empty(cell):
+                    continue
+                move = cell
+                board[cell] = val
+                score, _ = self._minimax(board, not is_maximizing, X if val == O else O)
+                board[move] = EMPTY
+                if cmp(score, best_score):
+                    best_score = score
+                    best_move = move
+        return best_score, best_move
 
     def choose_move(self, board):
         """
@@ -216,7 +204,7 @@ class Game:
         winner = None
         while not winner and not self.board.is_full():
             print(self.board)
-            
+
             move = self.current_player.choose_move(self.board)
             self.board[move] = self.current_player.val
 
