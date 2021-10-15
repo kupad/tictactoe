@@ -6,6 +6,14 @@ X = 1
 O = 2
 
 
+NROWS = 3
+NCOLS = 3
+
+START_POS = 0
+MAX_ROW_POS = NROWS - 1
+MAX_COL_POS = NCOLS - 1
+
+
 class Board:
     def __init__(self):
         self.b = [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]]
@@ -40,14 +48,17 @@ class Board:
         """
         return self[key] == EMPTY
 
+    def is_in_bounds(self, move):
+        row_pos, col_pos = move
+        return START_POS <= row_pos <= MAX_ROW_POS and START_POS <= col_pos <= MAX_COL_POS
+
     def is_valid(self, move):
         """
         is the move valid, given the current state of the board?
         """
         if move is None:
             return False
-        r, c = move
-        return 0 <= r <= 2 and 0 <= c <= 2 and self.is_empty(move)
+        return self.is_in_bounds(move) and self.is_empty(move)
 
     def is_full(self):
         return all([all(row) for row in self.b])
