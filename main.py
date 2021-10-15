@@ -1,10 +1,16 @@
 # Phil Dreizen
 # Tic Tac Toe
+import random
+
+DEV = False
+
+# seed the RNG
+seed = 42 if DEV else None
+random.seed(a=seed)
 
 EMPTY = 0
 X = 1
 O = 2
-
 
 NROWS = 3
 NCOLS = 3
@@ -12,7 +18,6 @@ NCOLS = 3
 START_POS = 0
 MAX_ROW_POS = NROWS - 1
 MAX_COL_POS = NCOLS - 1
-
 
 class Board:
     def __init__(self):
@@ -47,6 +52,13 @@ class Board:
         is the cell at (row, col) empty?
         """
         return self[key] == EMPTY
+
+    def get_empty_cells(self):
+        """
+        :return: a list of cells that are empty (row,col)
+        """
+        return [(row_pos, col_pos) for row_pos in range(NROWS) for col_pos in range(NCOLS)
+                if self.is_empty((row_pos, col_pos))]
 
     def is_in_bounds(self, move):
         row_pos, col_pos = move
@@ -102,6 +114,12 @@ class Player:
     def __init__(self, val):
         self.val = val  # X or O
 
+    def choose_move(self):
+        raise Exception("Not implemented")
+
+
+class HumanPlayer(Player):
+
     def _from_console(self, board):
         """
         Ask player to choose move.
@@ -123,11 +141,26 @@ class Player:
         return move
 
 
+class CPUPlayer(Player):
+    pass
+
+
+class RandomBot(CPUPlayer):
+    def choose_move(self, board):
+        """
+        Make a random move
+        - Find all empty cells, and pick a random one
+        :return: (row_pos, col_pos)
+        """
+        empty_cells = board.get_empty_cells()
+        return empty_cells[random.randint(0, len(empty_cells) - 1)]
+
+
 class Game:
     def __init__(self):
         self.board = Board()
-        self.playerX = Player(X)
-        self.playerO = Player(O)
+        self.playerX = HumanPlayer(X)
+        self.playerO = RandomBot(O)
         self.current_player = self.playerX
 
     def start(self):
