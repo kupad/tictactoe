@@ -156,11 +156,60 @@ class RandomBot(CPUPlayer):
         return empty_cells[random.randint(0, len(empty_cells) - 1)]
 
 
+class MiniMaxBot(CPUPlayer):
+    def _minimax(self, board, is_maximizing, val):
+        if board.check_win():
+            return -1 if is_maximizing else +1, None
+        elif board.is_full():
+            return 0, None
+
+        if is_maximizing:
+            best_score = -2
+            best_move = None
+            for row_pos in range(NROWS):
+                for col_pos in range(NCOLS):
+                    cell = (row_pos, col_pos)
+                    if not board.is_empty(cell):
+                        continue
+                    move = cell
+                    board[cell] = val
+                    score, _ = self._minimax(board, False, X if val == O else O)
+                    board[move] = EMPTY
+                    if score > best_score:
+                        best_score = score
+                        best_move = move
+            return best_score, best_move
+        else:
+            best_score = +2
+            best_move = None
+            for row_pos in range(NROWS):
+                for col_pos in range(NCOLS):
+                    cell = (row_pos, col_pos)
+                    if not board.is_empty(cell):
+                        continue
+                    move = cell
+                    board[move] = val
+                    score, _ = self._minimax(board, True, X if val == O else O)
+                    board[move] = EMPTY
+                    if score < best_score:
+                        best_score = score
+                        best_move = move
+            return best_score, best_move
+
+    def choose_move(self, board):
+        """
+        Use the minimax alg to find the best move
+        :return: (row_pos, col_pos)
+        """
+        _score, move = self._minimax(board, True, self.val)
+        return move
+
+
 class Game:
     def __init__(self):
         self.board = Board()
         self.playerX = HumanPlayer(X)
-        self.playerO = RandomBot(O)
+        self.playerO = MiniMaxBot(O)
         self.current_player = self.playerX
 
     def start(self):
